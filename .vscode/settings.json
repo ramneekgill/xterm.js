@@ -5,10 +5,10 @@
   // Hide output files from the file explorer, comment this out to see the build output
   "files.exclude": {
     "**/.nyc_output": true,
-    "**/lib": true,
+    "**/lib": false,
     "**/dist": true,
     "**/out": true,
-    "**/out-*": true,
+    "**/out-*": true
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.quoteStyle": "single",
@@ -24,5 +24,7 @@
     "addons/**/out/*.js",
     "out-*/**/*.js",
     "addons/**/out-*/*.js"
-  ]
+  ],
+  "terminal.integrated.cursorBlinking": false,
+  "terminal.integrated.cursorStyle": "underline"
 }

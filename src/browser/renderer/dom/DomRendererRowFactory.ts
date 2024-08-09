@@ -3,35 +3,37 @@
  * @license MIT
  */
 
-import { IBufferLine, ICellData, IColor } from 'common/Types';
-import { INVERTED_DEFAULT_COLOR } from 'browser/renderer/shared/Constants';
-import { WHITESPACE_CELL_CHAR, Attributes } from 'common/buffer/Constants';
-import { CellData } from 'common/buffer/CellData';
-import { ICoreService, IDecorationService, IOptionsService } from 'common/services/Services';
-import { channels, color } from 'common/Color';
-import { ICharacterJoinerService, ICoreBrowserService, IThemeService } from 'browser/services/Services';
-import { JoinedCellData } from 'browser/services/CharacterJoinerService';
-import { treatGlyphAsBackgroundColor } from 'browser/renderer/shared/RendererUtils';
-import { AttributeData } from 'common/buffer/AttributeData';
-import { WidthCache } from 'browser/renderer/dom/WidthCache';
-import { IColorContrastCache } from 'browser/Types';
-
+import { IBufferLine, ICellData, IColor } from "common/Types";
+import { INVERTED_DEFAULT_COLOR } from "browser/renderer/shared/Constants";
+import { WHITESPACE_CELL_CHAR, Attributes } from "common/buffer/Constants";
+import { CellData } from "common/buffer/CellData";
+import { ICoreService, IDecorationService, IOptionsService } from "common/services/Services";
+import { channels, color } from "common/Color";
+import {
+  ICharacterJoinerService,
+  ICoreBrowserService,
+  IThemeService,
+} from "browser/services/Services";
+import { JoinedCellData } from "browser/services/CharacterJoinerService";
+import { treatGlyphAsBackgroundColor } from "browser/renderer/shared/RendererUtils";
+import { AttributeData } from "common/buffer/AttributeData";
+import { WidthCache } from "browser/renderer/dom/WidthCache";
+import { IColorContrastCache } from "browser/Types";
 
 export const enum RowCss {
-  BOLD_CLASS = 'xterm-bold',
-  DIM_CLASS = 'xterm-dim',
-  ITALIC_CLASS = 'xterm-italic',
-  UNDERLINE_CLASS = 'xterm-underline',
-  OVERLINE_CLASS = 'xterm-overline',
-  STRIKETHROUGH_CLASS = 'xterm-strikethrough',
-  CURSOR_CLASS = 'xterm-cursor',
-  CURSOR_BLINK_CLASS = 'xterm-cursor-blink',
-  CURSOR_STYLE_BLOCK_CLASS = 'xterm-cursor-block',
-  CURSOR_STYLE_OUTLINE_CLASS = 'xterm-cursor-outline',
-  CURSOR_STYLE_BAR_CLASS = 'xterm-cursor-bar',
-  CURSOR_STYLE_UNDERLINE_CLASS = 'xterm-cursor-underline'
+  BOLD_CLASS = "xterm-bold",
+  DIM_CLASS = "xterm-dim",
+  ITALIC_CLASS = "xterm-italic",
+  UNDERLINE_CLASS = "xterm-underline",
+  OVERLINE_CLASS = "xterm-overline",
+  STRIKETHROUGH_CLASS = "xterm-strikethrough",
+  CURSOR_CLASS = "xterm-cursor",
+  CURSOR_BLINK_CLASS = "xterm-cursor-blink",
+  CURSOR_STYLE_BLOCK_CLASS = "xterm-cursor-block",
+  CURSOR_STYLE_OUTLINE_CLASS = "xterm-cursor-outline",
+  CURSOR_STYLE_BAR_CLASS = "xterm-cursor-bar",
+  CURSOR_STYLE_UNDERLINE_CLASS = "xterm-cursor-underline",
 }
-
 
 export class DomRendererRowFactory {
   private _workCell: CellData = new CellData();
@@ -52,7 +54,11 @@ export class DomRendererRowFactory {
     @IThemeService private readonly _themeService: IThemeService
   ) {}
 
-  public handleSelectionChanged(start: [number, number] | undefined, end: [number, number] | undefined, columnSelectMode: boolean): void {
+  public handleSelectionChanged(
+    start: [number, number] | undefined,
+    end: [number, number] | undefined,
+    columnSelectMode: boolean
+  ): void {
     this._selectionStart = start;
     this._selectionEnd = end;
     this._columnSelectMode = columnSelectMode;
@@ -66,12 +72,12 @@ export class DomRendererRowFactory {
     cursorInactiveStyle: string | undefined,
     cursorX: number,
     cursorBlink: boolean,
+    isCursorHidden: boolean,
     cellWidth: number,
     widthCache: WidthCache,
     linkStart: number,
     linkEnd: number
   ): HTMLSpanElement[] {
-
     const elements: HTMLSpanElement[] = [];
     const joinedRanges = this._characterJoinerService.getJoinedCharacters(row);
     const colors = this._themeService.colors;
@@ -83,7 +89,7 @@ export class DomRendererRowFactory {
 
     let charElement: HTMLSpanElement | undefined;
     let cellAmount = 0;
-    let text = '';
+    let text = "";
     let oldBg = 0;
     let oldFg = 0;
     let oldExt = 0;
@@ -136,21 +142,21 @@ export class DomRendererRowFactory {
       const isLinkHover = hasHover && x >= linkStart && x <= linkEnd;
 
       let isDecorated = false;
-      this._decorationService.forEachDecorationAtCell(x, row, undefined, d => {
+      this._decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
         isDecorated = true;
       });
 
       // get chars to render for this cell
       let chars = cell.getChars() || WHITESPACE_CELL_CHAR;
-      if (chars === ' ' && (cell.isUnderline() || cell.isOverline())) {
-        chars = '\xa0';
+      if (chars === " " && (cell.isUnderline() || cell.isOverline())) {
+        chars = "\xa0";
       }
 
       // lookup char render width and calc spacing
       spacing = width * cellWidth - widthCache.get(chars, cell.isBold(), cell.isItalic());
 
       if (!charElement) {
-        charElement = this._document.createElement('span');
+        charElement = this._document.createElement("span");
       } else {
         /**
          * chars can only be merged on existing span if:
@@ -163,21 +169,17 @@ export class DomRendererRowFactory {
          * - cell is not cursor
          */
         if (
-          cellAmount
-          && (
-            (isInSelection && oldIsInSelection)
-            || (!isInSelection && !oldIsInSelection && cell.bg === oldBg)
-          )
-          && (
-            (isInSelection && oldIsInSelection && colors.selectionForeground)
-            || cell.fg === oldFg
-          )
-          && cell.extended.ext === oldExt
-          && isLinkHover === oldLinkHover
-          && spacing === oldSpacing
-          && !isCursorCell
-          && !isJoined
-          && !isDecorated
+          cellAmount &&
+          ((isInSelection && oldIsInSelection) ||
+            (!isInSelection && !oldIsInSelection && cell.bg === oldBg)) &&
+          ((isInSelection && oldIsInSelection && colors.selectionForeground) ||
+            cell.fg === oldFg) &&
+          cell.extended.ext === oldExt &&
+          isLinkHover === oldLinkHover &&
+          spacing === oldSpacing &&
+          !isCursorCell &&
+          !isJoined &&
+          !isDecorated
         ) {
           // no span alterations, thus only account chars skipping all code below
           if (cell.isInvisible()) {
@@ -196,9 +198,9 @@ export class DomRendererRowFactory {
           if (cellAmount) {
             charElement.textContent = text;
           }
-          charElement = this._document.createElement('span');
+          charElement = this._document.createElement("span");
           cellAmount = 0;
-          text = '';
+          text = "";
         }
       }
       // preserve conditions for next merger eval round
@@ -218,32 +220,36 @@ export class DomRendererRowFactory {
         }
       }
 
-      if (!this._coreService.isCursorHidden && isCursorCell && this._coreService.isCursorInitialized) {
+      if (
+        !this._coreService.isCursorHidden &&
+        isCursorCell &&
+        this._coreService.isCursorInitialized
+      ) {
         classes.push(RowCss.CURSOR_CLASS);
         if (this._coreBrowserService.isFocused) {
           if (cursorBlink) {
             classes.push(RowCss.CURSOR_BLINK_CLASS);
           }
           classes.push(
-            cursorStyle === 'bar'
+            cursorStyle === "bar"
               ? RowCss.CURSOR_STYLE_BAR_CLASS
-              : cursorStyle === 'underline'
-                ? RowCss.CURSOR_STYLE_UNDERLINE_CLASS
-                : RowCss.CURSOR_STYLE_BLOCK_CLASS
+              : cursorStyle === "underline"
+              ? RowCss.CURSOR_STYLE_UNDERLINE_CLASS
+              : RowCss.CURSOR_STYLE_BLOCK_CLASS
           );
         } else {
           if (cursorInactiveStyle) {
             switch (cursorInactiveStyle) {
-              case 'outline':
+              case "outline":
                 classes.push(RowCss.CURSOR_STYLE_OUTLINE_CLASS);
                 break;
-              case 'block':
+              case "block":
                 classes.push(RowCss.CURSOR_STYLE_BLOCK_CLASS);
                 break;
-              case 'bar':
+              case "bar":
                 classes.push(RowCss.CURSOR_STYLE_BAR_CLASS);
                 break;
-              case 'underline':
+              case "underline":
                 classes.push(RowCss.CURSOR_STYLE_UNDERLINE_CLASS);
                 break;
               default:
@@ -273,15 +279,21 @@ export class DomRendererRowFactory {
 
       if (cell.isUnderline()) {
         classes.push(`${RowCss.UNDERLINE_CLASS}-${cell.extended.underlineStyle}`);
-        if (text === ' ') {
-          text = '\xa0'; // = &nbsp;
+        if (text === " ") {
+          text = "\xa0"; // = &nbsp;
         }
         if (!cell.isUnderlineColorDefault()) {
           if (cell.isUnderlineColorRGB()) {
-            charElement.style.textDecorationColor = `rgb(${AttributeData.toColorRGB(cell.getUnderlineColor()).join(',')})`;
+            charElement.style.textDecorationColor = `rgb(${AttributeData.toColorRGB(
+              cell.getUnderlineColor()
+            ).join(",")})`;
           } else {
             let fg = cell.getUnderlineColor();
-            if (this._optionsService.rawOptions.drawBoldTextInBrightColors && cell.isBold() && fg < 8) {
+            if (
+              this._optionsService.rawOptions.drawBoldTextInBrightColors &&
+              cell.isBold() &&
+              fg < 8
+            ) {
               fg += 8;
             }
             charElement.style.textDecorationColor = colors.ansi[fg].css;
@@ -291,8 +303,8 @@ export class DomRendererRowFactory {
 
       if (cell.isOverline()) {
         classes.push(RowCss.OVERLINE_CLASS);
-        if (text === ' ') {
-          text = '\xa0'; // = &nbsp;
+        if (text === " ") {
+          text = "\xa0"; // = &nbsp;
         }
       }
 
@@ -303,7 +315,7 @@ export class DomRendererRowFactory {
       // apply link hover underline late, effectively overrides any previous text-decoration
       // settings
       if (isLinkHover) {
-        charElement.style.textDecoration = 'underline';
+        charElement.style.textDecoration = "underline";
       }
 
       let fg = cell.getFgColor();
@@ -325,21 +337,21 @@ export class DomRendererRowFactory {
       let bgOverride: IColor | undefined;
       let fgOverride: IColor | undefined;
       let isTop = false;
-      this._decorationService.forEachDecorationAtCell(x, row, undefined, d => {
-        if (d.options.layer !== 'top' && isTop) {
+      this._decorationService.forEachDecorationAtCell(x, row, undefined, (d) => {
+        if (d.options.layer !== "top" && isTop) {
           return;
         }
         if (d.backgroundColorRGB) {
           bgColorMode = Attributes.CM_RGB;
-          bg = d.backgroundColorRGB.rgba >> 8 & 0xFFFFFF;
+          bg = (d.backgroundColorRGB.rgba >> 8) & 0xffffff;
           bgOverride = d.backgroundColorRGB;
         }
         if (d.foregroundColorRGB) {
           fgColorMode = Attributes.CM_RGB;
-          fg = d.foregroundColorRGB.rgba >> 8 & 0xFFFFFF;
+          fg = (d.foregroundColorRGB.rgba >> 8) & 0xffffff;
           fgOverride = d.foregroundColorRGB;
         }
-        isTop = d.options.layer === 'top';
+        isTop = d.options.layer === "top";
       });
 
       // Apply selection
@@ -348,8 +360,10 @@ export class DomRendererRowFactory {
         // support opaque selections. The applies background is not actually needed here as
         // selection is drawn in a seperate container, the main purpose of this to ensuring minimum
         // contrast ratio
-        bgOverride = this._coreBrowserService.isFocused ? colors.selectionBackgroundOpaque : colors.selectionInactiveBackgroundOpaque;
-        bg = bgOverride.rgba >> 8 & 0xFFFFFF;
+        bgOverride = this._coreBrowserService.isFocused
+          ? colors.selectionBackgroundOpaque
+          : colors.selectionInactiveBackgroundOpaque;
+        bg = (bgOverride.rgba >> 8) & 0xffffff;
         bgColorMode = Attributes.CM_RGB;
         // Since an opaque selection is being rendered, the selection pretends to be a decoration to
         // ensure text is drawn above the selection.
@@ -357,14 +371,14 @@ export class DomRendererRowFactory {
         // Apply selection foreground if applicable
         if (colors.selectionForeground) {
           fgColorMode = Attributes.CM_RGB;
-          fg = colors.selectionForeground.rgba >> 8 & 0xFFFFFF;
+          fg = (colors.selectionForeground.rgba >> 8) & 0xffffff;
           fgOverride = colors.selectionForeground;
         }
       }
 
       // If it's a top decoration, render above the selection
       if (isTop) {
-        classes.push('xterm-decoration-top');
+        classes.push("xterm-decoration-top");
       }
 
       // Background
@@ -376,8 +390,11 @@ export class DomRendererRowFactory {
           classes.push(`xterm-bg-${bg}`);
           break;
         case Attributes.CM_RGB:
-          resolvedBg = channels.toColor(bg >> 16, bg >> 8 & 0xFF, bg & 0xFF);
-          this._addStyle(charElement, `background-color:#${padStart((bg >>> 0).toString(16), '0', 6)}`);
+          resolvedBg = channels.toColor(bg >> 16, (bg >> 8) & 0xff, bg & 0xff);
+          this._addStyle(
+            charElement,
+            `background-color:#${padStart((bg >>> 0).toString(16), "0", 6)}`
+          );
           break;
         case Attributes.CM_DEFAULT:
         default:
@@ -400,26 +417,53 @@ export class DomRendererRowFactory {
       switch (fgColorMode) {
         case Attributes.CM_P16:
         case Attributes.CM_P256:
-          if (cell.isBold() && fg < 8 && this._optionsService.rawOptions.drawBoldTextInBrightColors) {
+          if (
+            cell.isBold() &&
+            fg < 8 &&
+            this._optionsService.rawOptions.drawBoldTextInBrightColors
+          ) {
             fg += 8;
           }
-          if (!this._applyMinimumContrast(charElement, resolvedBg, colors.ansi[fg], cell, bgOverride, undefined)) {
+          if (
+            !this._applyMinimumContrast(
+              charElement,
+              resolvedBg,
+              colors.ansi[fg],
+              cell,
+              bgOverride,
+              undefined
+            )
+          ) {
             classes.push(`xterm-fg-${fg}`);
           }
           break;
         case Attributes.CM_RGB:
-          const color = channels.toColor(
-            (fg >> 16) & 0xFF,
-            (fg >>  8) & 0xFF,
-            (fg      ) & 0xFF
-          );
-          if (!this._applyMinimumContrast(charElement, resolvedBg, color, cell, bgOverride, fgOverride)) {
-            this._addStyle(charElement, `color:#${padStart(fg.toString(16), '0', 6)}`);
+          const color = channels.toColor((fg >> 16) & 0xff, (fg >> 8) & 0xff, fg & 0xff);
+          if (
+            !this._applyMinimumContrast(
+              charElement,
+              resolvedBg,
+              color,
+              cell,
+              bgOverride,
+              fgOverride
+            )
+          ) {
+            this._addStyle(charElement, `color:#${padStart(fg.toString(16), "0", 6)}`);
           }
           break;
         case Attributes.CM_DEFAULT:
         default:
-          if (!this._applyMinimumContrast(charElement, resolvedBg, colors.foreground, cell, bgOverride, fgOverride)) {
+          if (
+            !this._applyMinimumContrast(
+              charElement,
+              resolvedBg,
+              colors.foreground,
+              cell,
+              bgOverride,
+              fgOverride
+            )
+          ) {
             if (isInverse) {
               classes.push(`xterm-fg-${INVERTED_DEFAULT_COLOR}`);
             }
@@ -430,7 +474,7 @@ export class DomRendererRowFactory {
       // slightly faster than using classList by omitting
       // checks for doubled entries (code above should not have doublets)
       if (classes.length) {
-        charElement.className = classes.join(' ');
+        charElement.className = classes.join(" ");
         classes.length = 0;
       }
 
@@ -457,8 +501,18 @@ export class DomRendererRowFactory {
     return elements;
   }
 
-  private _applyMinimumContrast(element: HTMLElement, bg: IColor, fg: IColor, cell: ICellData, bgOverride: IColor | undefined, fgOverride: IColor | undefined): boolean {
-    if (this._optionsService.rawOptions.minimumContrastRatio === 1 || treatGlyphAsBackgroundColor(cell.getCode())) {
+  private _applyMinimumContrast(
+    element: HTMLElement,
+    bg: IColor,
+    fg: IColor,
+    cell: ICellData,
+    bgOverride: IColor | undefined,
+    fgOverride: IColor | undefined
+  ): boolean {
+    if (
+      this._optionsService.rawOptions.minimumContrastRatio === 1 ||
+      treatGlyphAsBackgroundColor(cell.getCode())
+    ) {
       return false;
     }
 
@@ -494,7 +548,7 @@ export class DomRendererRowFactory {
   }
 
   private _addStyle(element: HTMLElement, style: string): void {
-    element.setAttribute('style', `${element.getAttribute('style') || ''}${style};`);
+    element.setAttribute("style", `${element.getAttribute("style") || ""}${style};`);
   }
 
   private _isCellInSelection(x: number, y: number): boolean {
@@ -505,16 +559,16 @@ export class DomRendererRowFactory {
     }
     if (this._columnSelectMode) {
       if (start[0] <= end[0]) {
-        return x >= start[0] && y >= start[1] &&
-          x < end[0] && y <= end[1];
+        return x >= start[0] && y >= start[1] && x < end[0] && y <= end[1];
       }
-      return x < start[0] && y >= start[1] &&
-        x >= end[0] && y <= end[1];
+      return x < start[0] && y >= start[1] && x >= end[0] && y <= end[1];
     }
-    return (y > start[1] && y < end[1]) ||
-        (start[1] === end[1] && y === start[1] && x >= start[0] && x < end[0]) ||
-        (start[1] < end[1] && y === end[1] && x < end[0]) ||
-        (start[1] < end[1] && y === start[1] && x >= start[0]);
+    return (
+      (y > start[1] && y < end[1]) ||
+      (start[1] === end[1] && y === start[1] && x >= start[0] && x < end[0]) ||
+      (start[1] < end[1] && y === end[1] && x < end[0]) ||
+      (start[1] < end[1] && y === start[1] && x >= start[0])
+    );
   }
 }
 

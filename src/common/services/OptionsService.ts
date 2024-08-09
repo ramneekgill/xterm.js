@@ -3,33 +3,34 @@
  * @license MIT
  */
 
-import { Disposable, toDisposable } from 'vs/base/common/lifecycle';
-import { isMac } from 'common/Platform';
-import { CursorStyle, IDisposable } from 'common/Types';
-import { FontWeight, IOptionsService, ITerminalOptions } from 'common/services/Services';
-import { Emitter } from 'vs/base/common/event';
+import { Disposable, toDisposable } from "vs/base/common/lifecycle";
+import { isMac } from "common/Platform";
+import { CursorStyle, IDisposable } from "common/Types";
+import { FontWeight, IOptionsService, ITerminalOptions } from "common/services/Services";
+import { Emitter } from "vs/base/common/event";
 
 export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
   cols: 80,
   rows: 24,
   cursorBlink: false,
-  cursorStyle: 'block',
+  cursorStyle: "block",
   cursorWidth: 1,
-  cursorInactiveStyle: 'outline',
+  cursorInactiveStyle: "outline",
   customGlyphs: true,
   drawBoldTextInBrightColors: true,
   documentOverride: null,
-  fastScrollModifier: 'alt',
+  fastScrollModifier: "alt",
   fastScrollSensitivity: 5,
-  fontFamily: 'courier-new, courier, monospace',
+  fontFamily: "courier-new, courier, monospace",
   fontSize: 15,
-  fontWeight: 'normal',
-  fontWeightBold: 'bold',
+  fontWeight: "normal",
+  fontWeightBold: "bold",
   ignoreBracketedPasteMode: false,
+  isCursorHidden: false,
   lineHeight: 1.0,
   letterSpacing: 0,
   linkHandler: null,
-  logLevel: 'info',
+  logLevel: "info",
   logger: null,
   scrollback: 1000,
   scrollOnUserInput: true,
@@ -49,15 +50,27 @@ export const DEFAULT_OPTIONS: Readonly<Required<ITerminalOptions>> = {
   windowOptions: {},
   windowsMode: false,
   windowsPty: {},
-  wordSeparator: ' ()[]{}\',"`',
+  wordSeparator: " ()[]{}',\"`",
   altClickMovesCursor: true,
   convertEol: false,
-  termName: 'xterm',
+  termName: "xterm",
   cancelEvents: false,
-  overviewRuler: {}
+  overviewRuler: {},
 };
 
-const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = ['normal', 'bold', '100', '200', '300', '400', '500', '600', '700', '800', '900'];
+const FONT_WEIGHT_OPTIONS: Extract<FontWeight, string>[] = [
+  "normal",
+  "bold",
+  "100",
+  "200",
+  "300",
+  "400",
+  "500",
+  "600",
+  "700",
+  "800",
+  "900",
+];
 
 export class OptionsService extends Disposable implements IOptionsService {
   public serviceBrand: any;
@@ -85,20 +98,25 @@ export class OptionsService extends Disposable implements IOptionsService {
 
     // set up getters and setters for each option
     this.rawOptions = defaultOptions;
-    this.options = { ... defaultOptions };
+    this.options = { ...defaultOptions };
     this._setupOptions();
 
     // Clear out options that could link outside xterm.js as they could easily cause an embedder
     // memory leak
-    this._register(toDisposable(() => {
-      this.rawOptions.linkHandler = null;
-      this.rawOptions.documentOverride = null;
-    }));
+    this._register(
+      toDisposable(() => {
+        this.rawOptions.linkHandler = null;
+        this.rawOptions.documentOverride = null;
+      })
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  public onSpecificOptionChange<T extends keyof ITerminalOptions>(key: T, listener: (value: ITerminalOptions[T]) => any): IDisposable {
-    return this.onOptionChange(eventKey => {
+  public onSpecificOptionChange<T extends keyof ITerminalOptions>(
+    key: T,
+    listener: (value: ITerminalOptions[T]) => any
+  ): IDisposable {
+    return this.onOptionChange((eventKey) => {
       if (eventKey === key) {
         listener(this.rawOptions[key]);
       }
@@ -106,8 +124,11 @@ export class OptionsService extends Disposable implements IOptionsService {
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  public onMultipleOptionChange(keys: (keyof ITerminalOptions)[], listener: () => any): IDisposable {
-    return this.onOptionChange(eventKey => {
+  public onMultipleOptionChange(
+    keys: (keyof ITerminalOptions)[],
+    listener: () => any
+  ): IDisposable {
+    return this.onOptionChange((eventKey) => {
       if (keys.indexOf(eventKey) !== -1) {
         listener();
       }
@@ -138,7 +159,7 @@ export class OptionsService extends Disposable implements IOptionsService {
     for (const propName in this.rawOptions) {
       const desc = {
         get: getter.bind(this, propName),
-        set: setter.bind(this, propName)
+        set: setter.bind(this, propName),
       };
       Object.defineProperty(this.options, propName, desc);
     }
@@ -146,7 +167,7 @@ export class OptionsService extends Disposable implements IOptionsService {
 
   private _sanitizeAndValidateOption(key: string, value: any): any {
     switch (key) {
-      case 'cursorStyle':
+      case "cursorStyle":
         if (!value) {
           value = DEFAULT_OPTIONS[key];
         }
@@ -154,50 +175,50 @@ export class OptionsService extends Disposable implements IOptionsService {
           throw new Error(`"${value}" is not a valid value for ${key}`);
         }
         break;
-      case 'wordSeparator':
+      case "wordSeparator":
         if (!value) {
           value = DEFAULT_OPTIONS[key];
         }
         break;
-      case 'fontWeight':
-      case 'fontWeightBold':
-        if (typeof value === 'number' && 1 <= value && value <= 1000) {
+      case "fontWeight":
+      case "fontWeightBold":
+        if (typeof value === "number" && 1 <= value && value <= 1000) {
           // already valid numeric value
           break;
         }
         value = FONT_WEIGHT_OPTIONS.includes(value) ? value : DEFAULT_OPTIONS[key];
         break;
-      case 'cursorWidth':
+      case "cursorWidth":
         value = Math.floor(value);
-        // Fall through for bounds check
-      case 'lineHeight':
-      case 'tabStopWidth':
+      // Fall through for bounds check
+      case "lineHeight":
+      case "tabStopWidth":
         if (value < 1) {
           throw new Error(`${key} cannot be less than 1, value: ${value}`);
         }
         break;
-      case 'minimumContrastRatio':
+      case "minimumContrastRatio":
         value = Math.max(1, Math.min(21, Math.round(value * 10) / 10));
         break;
-      case 'scrollback':
+      case "scrollback":
         value = Math.min(value, 4294967295);
         if (value < 0) {
           throw new Error(`${key} cannot be less than 0, value: ${value}`);
         }
         break;
-      case 'fastScrollSensitivity':
-      case 'scrollSensitivity':
+      case "fastScrollSensitivity":
+      case "scrollSensitivity":
         if (value <= 0) {
           throw new Error(`${key} cannot be less than or equal to 0, value: ${value}`);
         }
         break;
-      case 'rows':
-      case 'cols':
+      case "rows":
+      case "cols":
         if (!value && value !== 0) {
           throw new Error(`${key} must be numeric, value: ${value}`);
         }
         break;
-      case 'windowsPty':
+      case "windowsPty":
         value = value ?? {};
         break;
     }
@@ -206,5 +227,5 @@ export class OptionsService extends Disposable implements IOptionsService {
 }
 
 function isCursorStyle(value: unknown): value is CursorStyle {
-  return value === 'block' || value === 'underline' || value === 'bar';
+  return value === "block" || value === "underline" || value === "bar";
 }

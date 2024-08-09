@@ -3,22 +3,36 @@
  * @license MIT
  */
 
-import * as Strings from 'browser/LocalizableStrings';
-import { CoreBrowserTerminal as TerminalCore } from 'browser/CoreBrowserTerminal';
-import { IBufferRange, ITerminal } from 'browser/Types';
-import { Disposable } from 'vs/base/common/lifecycle';
-import { ITerminalOptions } from 'common/Types';
-import { AddonManager } from 'common/public/AddonManager';
-import { BufferNamespaceApi } from 'common/public/BufferNamespaceApi';
-import { ParserApi } from 'common/public/ParserApi';
-import { UnicodeApi } from 'common/public/UnicodeApi';
-import { IBufferNamespace as IBufferNamespaceApi, IDecoration, IDecorationOptions, IDisposable, ILinkProvider, ILocalizableStrings, IMarker, IModes, IParser, ITerminalAddon, Terminal as ITerminalApi, ITerminalInitOnlyOptions, IUnicodeHandling } from '@xterm/xterm';
-import type { Event } from 'vs/base/common/event';
+import * as Strings from "browser/LocalizableStrings";
+import { CoreBrowserTerminal as TerminalCore } from "browser/CoreBrowserTerminal";
+import { IBufferRange, ITerminal } from "browser/Types";
+import { Disposable } from "vs/base/common/lifecycle";
+import { ITerminalOptions } from "common/Types";
+import { AddonManager } from "common/public/AddonManager";
+import { BufferNamespaceApi } from "common/public/BufferNamespaceApi";
+import { ParserApi } from "common/public/ParserApi";
+import { UnicodeApi } from "common/public/UnicodeApi";
+import {
+  IBufferNamespace as IBufferNamespaceApi,
+  IDecoration,
+  IDecorationOptions,
+  IDisposable,
+  ILinkProvider,
+  ILocalizableStrings,
+  IMarker,
+  IModes,
+  IParser,
+  ITerminalAddon,
+  Terminal as ITerminalApi,
+  ITerminalInitOnlyOptions,
+  IUnicodeHandling,
+} from "@xterm/xterm";
+import type { Event } from "vs/base/common/event";
 
 /**
  * The set of options that only have an effect when set in the Terminal constructor.
  */
-const CONSTRUCTOR_ONLY_OPTIONS = ['cols', 'rows'];
+const CONSTRUCTOR_ONLY_OPTIONS = ["cols", "rows"];
 
 let $value = 0;
 
@@ -31,11 +45,10 @@ export class Terminal extends Disposable implements ITerminalApi {
 
   constructor(options?: ITerminalOptions & ITerminalInitOnlyOptions) {
     super();
-
     this._core = this._register(new TerminalCore(options));
     this._addonManager = this._register(new AddonManager());
 
-    this._publicOptions = { ... this._core.options };
+    this._publicOptions = { ...this._core.options };
     const getter = (propName: string): any => {
       return this._core.options[propName];
     };
@@ -47,7 +60,7 @@ export class Terminal extends Disposable implements ITerminalApi {
     for (const propName in this._core.options) {
       const desc = {
         get: getter.bind(this, propName),
-        set: setter.bind(this, propName)
+        set: setter.bind(this, propName),
       };
       Object.defineProperty(this._publicOptions, propName, desc);
     }
@@ -64,24 +77,50 @@ export class Terminal extends Disposable implements ITerminalApi {
 
   private _checkProposedApi(): void {
     if (!this._core.optionsService.rawOptions.allowProposedApi) {
-      throw new Error('You must set the allowProposedApi option to true to use proposed API');
+      throw new Error("You must set the allowProposedApi option to true to use proposed API");
     }
   }
 
-  public get onBell(): Event<void> { return this._core.onBell; }
-  public get onBinary(): Event<string> { return this._core.onBinary; }
-  public get onCursorMove(): Event<void> { return this._core.onCursorMove; }
-  public get onData(): Event<string> { return this._core.onData; }
-  public get onKey(): Event<{ key: string, domEvent: KeyboardEvent }> { return this._core.onKey; }
-  public get onLineFeed(): Event<void> { return this._core.onLineFeed; }
-  public get onRender(): Event<{ start: number, end: number }> { return this._core.onRender; }
-  public get onResize(): Event<{ cols: number, rows: number }> { return this._core.onResize; }
-  public get onScroll(): Event<number> { return this._core.onScroll; }
-  public get onSelectionChange(): Event<void> { return this._core.onSelectionChange; }
-  public get onTitleChange(): Event<string> { return this._core.onTitleChange; }
-  public get onWriteParsed(): Event<void> { return this._core.onWriteParsed; }
+  public get onBell(): Event<void> {
+    return this._core.onBell;
+  }
+  public get onBinary(): Event<string> {
+    return this._core.onBinary;
+  }
+  public get onCursorMove(): Event<void> {
+    return this._core.onCursorMove;
+  }
+  public get onData(): Event<string> {
+    return this._core.onData;
+  }
+  public get onKey(): Event<{ key: string; domEvent: KeyboardEvent }> {
+    return this._core.onKey;
+  }
+  public get onLineFeed(): Event<void> {
+    return this._core.onLineFeed;
+  }
+  public get onRender(): Event<{ start: number; end: number }> {
+    return this._core.onRender;
+  }
+  public get onResize(): Event<{ cols: number; rows: number }> {
+    return this._core.onResize;
+  }
+  public get onScroll(): Event<number> {
+    return this._core.onScroll;
+  }
+  public get onSelectionChange(): Event<void> {
+    return this._core.onSelectionChange;
+  }
+  public get onTitleChange(): Event<string> {
+    return this._core.onTitleChange;
+  }
+  public get onWriteParsed(): Event<void> {
+    return this._core.onWriteParsed;
+  }
 
-  public get element(): HTMLElement | undefined { return this._core.element; }
+  public get element(): HTMLElement | undefined {
+    return this._core.element;
+  }
   public get parser(): IParser {
     if (!this._parser) {
       this._parser = new ParserApi(this._core);
@@ -92,9 +131,15 @@ export class Terminal extends Disposable implements ITerminalApi {
     this._checkProposedApi();
     return new UnicodeApi(this._core);
   }
-  public get textarea(): HTMLTextAreaElement | undefined { return this._core.textarea; }
-  public get rows(): number { return this._core.rows; }
-  public get cols(): number { return this._core.cols; }
+  public get textarea(): HTMLTextAreaElement | undefined {
+    return this._core.textarea;
+  }
+  public get rows(): number {
+    return this._core.rows;
+  }
+  public get cols(): number {
+    return this._core.cols;
+  }
   public get buffer(): IBufferNamespaceApi {
     if (!this._buffer) {
       this._buffer = this._register(new BufferNamespaceApi(this._core));
@@ -107,12 +152,20 @@ export class Terminal extends Disposable implements ITerminalApi {
   }
   public get modes(): IModes {
     const m = this._core.coreService.decPrivateModes;
-    let mouseTrackingMode: 'none' | 'x10' | 'vt200' | 'drag' | 'any' = 'none';
+    let mouseTrackingMode: "none" | "x10" | "vt200" | "drag" | "any" = "none";
     switch (this._core.coreMouseService.activeProtocol) {
-      case 'X10': mouseTrackingMode = 'x10'; break;
-      case 'VT200': mouseTrackingMode = 'vt200'; break;
-      case 'DRAG': mouseTrackingMode = 'drag'; break;
-      case 'ANY': mouseTrackingMode = 'any'; break;
+      case "X10":
+        mouseTrackingMode = "x10";
+        break;
+      case "VT200":
+        mouseTrackingMode = "vt200";
+        break;
+      case "DRAG":
+        mouseTrackingMode = "drag";
+        break;
+      case "ANY":
+        mouseTrackingMode = "any";
+        break;
     }
     return {
       applicationCursorKeysMode: m.applicationCursorKeys,
@@ -123,7 +176,7 @@ export class Terminal extends Disposable implements ITerminalApi {
       originMode: m.origin,
       reverseWraparoundMode: m.reverseWraparound,
       sendFocusMode: m.sendFocus,
-      wraparoundMode: m.wraparound
+      wraparoundMode: m.wraparound,
     };
   }
   public get options(): Required<ITerminalOptions> {
@@ -150,10 +203,14 @@ export class Terminal extends Disposable implements ITerminalApi {
   public open(parent: HTMLElement): void {
     this._core.open(parent);
   }
-  public attachCustomKeyEventHandler(customKeyEventHandler: (event: KeyboardEvent) => boolean): void {
+  public attachCustomKeyEventHandler(
+    customKeyEventHandler: (event: KeyboardEvent) => boolean
+  ): void {
     this._core.attachCustomKeyEventHandler(customKeyEventHandler);
   }
-  public attachCustomWheelEventHandler(customWheelEventHandler: (event: WheelEvent) => boolean): void {
+  public attachCustomWheelEventHandler(
+    customWheelEventHandler: (event: WheelEvent) => boolean
+  ): void {
     this._core.attachCustomWheelEventHandler(customWheelEventHandler);
   }
   public registerLinkProvider(linkProvider: ILinkProvider): IDisposable {
@@ -173,7 +230,11 @@ export class Terminal extends Disposable implements ITerminalApi {
   }
   public registerDecoration(decorationOptions: IDecorationOptions): IDecoration | undefined {
     this._checkProposedApi();
-    this._verifyPositiveIntegers(decorationOptions.x ?? 0, decorationOptions.width ?? 0, decorationOptions.height ?? 0);
+    this._verifyPositiveIntegers(
+      decorationOptions.x ?? 0,
+      decorationOptions.width ?? 0,
+      decorationOptions.height ?? 0
+    );
     return this._core.registerDecoration(decorationOptions);
   }
   public hasSelection(): boolean {
@@ -228,7 +289,7 @@ export class Terminal extends Disposable implements ITerminalApi {
   }
   public writeln(data: string | Uint8Array, callback?: () => void): void {
     this._core.write(data);
-    this._core.write('\r\n', callback);
+    this._core.write("\r\n", callback);
   }
   public paste(data: string): void {
     this._core.paste(data);
@@ -249,17 +310,25 @@ export class Terminal extends Disposable implements ITerminalApi {
   public static get strings(): ILocalizableStrings {
     // A wrapper is required here because esbuild prevents setting an `export let`
     return {
-      get promptLabel(): string { return Strings.promptLabel.get(); },
-      set promptLabel(value: string) { Strings.promptLabel.set(value); },
-      get tooMuchOutput(): string { return Strings.tooMuchOutput.get(); },
-      set tooMuchOutput(value: string) { Strings.tooMuchOutput.set(value); }
+      get promptLabel(): string {
+        return Strings.promptLabel.get();
+      },
+      set promptLabel(value: string) {
+        Strings.promptLabel.set(value);
+      },
+      get tooMuchOutput(): string {
+        return Strings.tooMuchOutput.get();
+      },
+      set tooMuchOutput(value: string) {
+        Strings.tooMuchOutput.set(value);
+      },
     };
   }
 
   private _verifyIntegers(...values: number[]): void {
     for ($value of values) {
       if ($value === Infinity || isNaN($value) || $value % 1 !== 0) {
-        throw new Error('This API only accepts integers');
+        throw new Error("This API only accepts integers");
       }
     }
   }
@@ -267,7 +336,7 @@ export class Terminal extends Disposable implements ITerminalApi {
   private _verifyPositiveIntegers(...values: number[]): void {
     for ($value of values) {
       if ($value && ($value === Infinity || isNaN($value) || $value % 1 !== 0 || $value < 0)) {
-        throw new Error('This API only accepts positive integers');
+        throw new Error("This API only accepts positive integers");
       }
     }
   }
